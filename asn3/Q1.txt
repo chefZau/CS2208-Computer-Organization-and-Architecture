@@ -1,0 +1,29 @@
+			AREA Question1, CODE, READONLY
+			ENTRY
+			
+			ADR r1, STRING1	;create a pointer point to the beginning of string1
+			ADR r2, STRING2	;create a pointer point to the beginning of string2
+			ADR r0, STRING3	;create a pointer point to the beginning of string3
+			
+LoadS1		LDRB	r3, [r1], #1	;load the value into r3, then increase the pointer to point to the next character
+			CMP	r3, #0x00	;compare the value with EOS
+			BEQ LoadS2	;if it is EOS, then branch to string2
+			STRB	r3, [r0], #1	;if not, store the value into string3, then increase the pointer to point to the next empty position
+			B	LoadS1	;then load the next character in string1
+			
+LoadS2		LDRB r3, [r2], #1	;load the value into r3, then increase the pointer to point to the next character
+			STRB r3, [r0], #1	;store the value into string3, then increase the pointer to point to the next empty position
+			CMP	r3, #0x00
+			BEQ Exit	;if it is EOS, means all the characters has been stored in string3 already, so exit the program
+			B	LoadS2	;if not, then load the next character in string2
+			
+Exit		B	Exit
+
+			AREA Question1, DATA, READWRITE
+STRING1		DCB	"This is a test string1"
+EoS1		DCB	0x00
+STRING2		DCB	"This is a test string2"
+EoS2		DCB	0x00
+STRING3		space 0xFF
+
+			END

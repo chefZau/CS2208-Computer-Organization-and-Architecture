@@ -1,0 +1,91 @@
+About 2208 Assignment
+	n & 1 check odd and even
+	n>>1 divide by 2
+	n^8 = n^4 * n^4
+
+How to pass the parameter 
+	do not store the parameter to register
+	only use stacks, if you want to use any register, store them in the stack
+
+RISC/CISC区别：
+	CISC 会自动修改stack的指针
+	RISC 可不会 所以说你需要自己来
+
+subroutine call {
+	subroutine call (function) 实现的方式 
+	save the next instruction
+	loads the pc with the address of subroutine
+		return from subroutine instruction RTS
+
+	BL branch while copying the return address to r14
+	Returning ==  mov pc, lr / mov r15, r14
+}
+
+Stack{
+	有四种stack - 有两种分法
+	第一种分法： point to free location & point to a filled location(TOS)
+	第二种分法： going to higher memory(increasing/grows down) & going to lower memory(decreasing/grows up) 
+
+	分析四种stack：
+		a) Decreasing stack, point to a filled location(TOS)
+			往上走的
+			push 因为指向了一个有东西的location，所以需要先减4才能放data
+			pop 因为指向了一个有东西的location，需要先删除data才能加4
+		b) Decreasing stack, point to a free location
+			往上走的stack
+			push 指向了没有东西的location 可以直接放data 但是需要之后再减4 留给下一个
+			pop 指向了没有东西的location 需要加4才能到达 有内容的位置 所以需要先加4 才能删除data
+		c) Increasing stack, point to a filled location
+			往下走的stack
+			push 因为指向了一个有东西的位置 需要先increment 才能放data
+			pop 因为指向了一个有东西的位置 如果要把这个东西删除 可以直接删除，记着要减4 顺位到下一位
+		d) Increasing stack, point to a free location
+			往下走的stack
+			push： 因为指向了没有东西的位置 可以直接放data 但是记着改变指针到下一个位置
+			pop: 因为指向了一个没东西的位置 需要减4才能够reach 到data 之后才能 删除data
+}
+
+Application of Stack{
+	save return addresses after a subroutine call.
+
+	Returning:
+		之前讲到了return的话是把存的r14的内容放到pc即可
+		但是r14只有一个阿，所以说不够用啊！
+		现在可以存到stack里面了
+		i.e.
+			store the return address on stack
+			and then jump to function
+		call subroutine:
+			STR r15(pc), [r13, #-4]! 
+			//先减再存 growing up point to TOS
+			B Target //因为已经存了return的address了 所以不需要改变r14了 不用使用BL了
+
+		returing:
+			//因为arm没有 所以需要自己手动return
+			LDR r12, [r13], #4 
+			//因为是一个point to empty location的 直接放然后increment
+			SUB r15, r12, #4 
+			//因为pipeline effect电脑已经跳了三个instruction(STR后面三个为了 到第二个所以需要减四才能够回到 跳到B之后一个instruction)
+
+	有了stack之后，我们就可以存好多个return address了
+		这样我们就可以拼命的call function了
+
+	leaf routines - base case
+		returing address store in r14
+		虽然说我们现在可以肆意的使用subroutine，我们需要掌握一个度 在base case的时候 call exit function
+		p184 - 
+		i.e. 
+			loop b loop
+			Fun_1 NOP
+				  MOV pc, lr
+			Fun_2 NOP
+				  STR lr, [sp], #4
+				  BL Fun_1
+				  LDR pc, [sp, #-4]!
+			STACK SPACE 0x10
+
+}
+
+
+
+Another method to implement a subroutine call

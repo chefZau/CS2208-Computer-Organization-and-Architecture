@@ -1,0 +1,60 @@
+			AREA	Question2, CODE, READONLY
+			ENTRY
+			
+			ADR		r1, STRING1	;make pointer point to the first character of string1
+			ADR 	r2, STRING2	;make pointer point to the first character of string1
+					
+Loop		LDRB	r0, [r1], #1	;load the first character of string1 to r0, then increase the pointer
+			STRB	r0, [r2], #1	;store the character to string2 
+			CMP		r0, #0x74	;check if it is 't'
+			BEQ		Checkh	;if it is 't', then branch to checkh
+			CMP		r0, #0x00	;if not, check whether it is the end of string1
+			BEQ		Exit	;if it is the end of string1, then exit
+			B		Loop	;otherwise, branch to loop and read the next character
+			
+Checkh		LDRB	r0, [r1], #1	;load the character of string1, then increase the pointer
+			STRB	r0, [r2], #1	;store the chracter to string2
+			CMP		r0, #0x68	;check if it is 'h'
+			BEQ		Checke	;if it is 'h', then branch to checke
+			CMP		r0, #0x00	;if not, check whether it is the end of string1
+			BEQ		Exit	;if it is the end of string1, then exit
+			B		Loop	;otherwise, branch to loop and read the next character
+			
+Checke		LDRB	r0, [r1], #1	;load the character of string1, then increase the pointer
+			STRB	r0, [r2], #1	;store the chracter to string2
+			CMP		r0, #0x65	;check if it is 'e'
+			BEQ		CheckNext	;if it is 'e', then branch to checknext
+			CMP		r0, #0x00	;if not, check whether it is the end of string1
+			BEQ		Exit	;if it is the end of string1, then exit
+			B		Loop	;otherwise, branch to loop and read the next character
+
+CheckNext	LDRB	r0, [r1], #1	;load the character of string1, then increase the pointer
+			MOV		r3, #1	;create a counter to delete the previous 3 characters in string2, if the previous 3 characters are 'the'
+			CMP		r0, #0x20	;test if the character is blank
+			BEQ		Delete	;if it is blank, means the previous 3 characters are 'the', then branch to delete
+			CMP		r0, #0x00	;test if the character is EoS
+			BEQ		Delete	;if it is EoS, means the previous 3 characters are 'the', then branch to delete
+			STRB	r0, [r2], #1	;if it is neither blank or EoS, means the previous 3 characters are combined with this character, then store the character
+			B		Loop	;branch to loop to read the next character
+			
+Delete		SUB		r2, #1	;return the pointer of string2 to the previous character
+			STRB	r4, [r2]	;set it to 0
+			ADD		r3, #1	;increase the count by 1
+			CMP		r3, #4	;test whether the delete loop has been processed 3 times
+			BEQ		Store	;branch to store, if the previous 3 characters are set to 0
+			B		Delete	;branch to store
+			
+Store		STRB	r0, [r2], #1	;store the character to string2 after deleting
+			CMP		r0, #0x20	;test if it is blank
+			BEQ		Loop	;if it is blank, branch to loop and read the next character in string1
+			B		Exit	;otherwise means it is EoS, so exit
+			
+			
+Exit		B		Exit
+			
+			AREA	Question2, DATA, READWRITE
+STRING1 	DCB "and the man said they must go" ;String1
+EoS 		DCB 0x00 ;end of string1
+STRING2 	space 0xFF 
+	
+			END
